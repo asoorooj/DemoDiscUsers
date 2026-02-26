@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml" xmlns:hx-on="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+    <div id="userTable" th:fragment="userTable">
+        <table class="table table-sm table-secondary table-bordered border-dark border-4 text-center mx-auto" style="width:100%;">
+            <thead>
+                <tr class="table-primary border-dark">
+                    <th class="border-dark border-2">id</th>
+                    <th class="border-dark border-2">First Name</th>
+                    <th class="border-dark border-2">User Name</th>
+                    <th class="border-dark border-2">Primary Role</th>
+                    <th class="border-dark border-2">isAdmin</th>
+                    <th class="border-dark border-2">Birthdate</th>
+                    <th class="border-dark border-2">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:hx-get="@{/tableScroll(page=${pageNumber+1})}"
+                    hx-trigger="revealed"
+                    hx-swap="outerHTML">
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <th:block th:fragment="userRows">
+        <tr th:each="user : ${users}">
+            <td th:text="${user.id}"></td>
+            <td th:text="${user.firstName}"></td>
+            <td th:text="${user.userName}"></td>
+            <td th:text="${user.primaryRole}"></td>
+            <td th:text="${user.isAdmin}"></td>
+            <td th:text="${user.birthdate}"></td>
+            <td>
+                <a th:href="@{/edit(id=${user.id})}" class="btn btn-warning">Edit</a>
+                <a class="btn btn-danger"
+                   th:hx-post="@{/delete(id=${user.id})}"
+                   hx-target="#userTable"
+                   hx-confirm="Delete this user?">Delete</a>
+            </td>
+        </tr>
+        <tr th:if="${hasNextPage}"
+            th:hx-get="@{/tableScroll(page=${pageNumber + 1})}"
+            hx-trigger="revealed"
+            hx-swap="outerHTML">
+            <td colspan="7" class="text-center py-3">Loading next page...</td>
+        </tr>
+    </th:block>
+
+</body>
+</html>

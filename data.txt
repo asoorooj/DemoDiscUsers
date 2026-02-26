@@ -1,0 +1,33 @@
+curl -Uri "http://localhost:8080/ws" -Method POST -ContentType "text/xml;charset=UTF-8" -Body "<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:tns='http://soap.jee.mcnz.com/'><soapenv:Header/><soapenv:Body><tns:getUserRequest><id>1</id></tns:getUserRequest></soapenv:Body></soapenv:Envelope>"
+(curl -Uri "http://localhost:8080/ws" -Method POST -ContentType "text/xml;charset=UTF-8" -Body "<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:tns='http://soap.jee.mcnz.com/'><soapenv:Header/><soapenv:Body><tns:getUserRequest><id>1</id></tns:getUserRequest></soapenv:Body></soapenv:Envelope>").Content
+(curl -Uri "http://localhost:8080/ws" -Method POST -ContentType "text/xml;charset=UTF-8" -Body "<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:tns='http://soap.jee.mcnz.com/'><soapenv:Header/><soapenv:Body><tns:getUserRequest><tns:id>1</tns:id></tns:getUserRequest></soapenv:Body></soapenv:Envelope>").Content
+
+(curl -Uri "http://localhost:8080/ws" -Method POST -ContentType "text/xml;charset=UTF-8" -Body "<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:tns='http://soap.jee.mcnz.com/'><soapenv:Header/><soapenv:Body><tns:addUserRequest><tns:user><tns:id>39</tns:id><tns:firstName>TEST_GUY</tns:firstName><tns:userName>mr.Test</tns:userName><tns:primaryRole>testSubject</tns:primaryRole><tns:isAdmin>false</tns:isAdmin><tns:birthdate>2000-05-12</tns:birthdate></tns:user></tns:addUserRequest></soapenv:Body></soapenv:Envelope>").Content
+(curl -Uri "http://localhost:8080/ws" -Method POST -ContentType "text/xml;charset=UTF-8" -Body "<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:tns='http://soap.jee.mcnz.com/'><soapenv:Header/><soapenv:Body><tns:updateUserRequest><tns:user><tns:id>39</tns:id><tns:firstName>UPDT_GUY</tns:firstName><tns:userName>mr.Update</tns:userName><tns:primaryRole>UpdatetestSubject</tns:primaryRole><tns:isAdmin>true</tns:isAdmin><tns:birthdate>2000-02-23</tns:birthdate></tns:user></tns:updateUserRequest></soapenv:Body></soapenv:Envelope>").Content
+(curl -Uri "http://localhost:8080/ws" -Method POST -ContentType "text/xml;charset=UTF-8" -Body "<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:tns='http://soap.jee.mcnz.com/'><soapenv:Header/><soapenv:Body><tns:deleteUserRequest><tns:id>39</tns:id></tns:deleteUserRequest></soapenv:Body></soapenv:Envelope>").Content
+
+(curl -Uri "http://localhost:8080/ws" -Method POST -ContentType "text/xml;charset=UTF-8" -Body "<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:tns='http://soap.jee.mcnz.com/'><soapenv:Header/><soapenv:Body><tns:getAllUsersRequest></tns:getAllUsersRequest></soapenv:Body></soapenv:Envelope>").Content
+(curl -Uri "http://localhost:8080/ws" -Method POST -ContentType "text/xml;charset=UTF-8" -Body "<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:tns='http://soap.jee.mcnz.com/'><soapenv:Header/><soapenv:Body><tns:getUsersByPrimaryRoleRequest><tns:primaryRole>noodlemen</tns:primaryRole></tns:getUsersByPrimaryRoleRequest></soapenv:Body></soapenv:Envelope>").Content
+
+
+StatusCode        : 200
+StatusDescription : 
+Content           : <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"><SOAP-ENV:Header/><SOAP-ENV:Body><ns2:getUserResponse xmlns:ns2="http://soap.jee.mcnz.com/"><ns2:user><ns2:id>0</ns2:id><n...
+RawContent        : HTTP/1.1 200 
+                    Accept: text/xml, text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+                    SOAPAction: ""
+                    Keep-Alive: timeout=60
+                    Connection: keep-alive
+                    Content-Length: 357
+                    Content-Type: text/xml;chars...
+Forms             : {}
+Headers           : {[Accept, text/xml, text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2], [SOAPAction, ""], [Keep-Alive, timeout=60], [Connection, keep-alive]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : mshtml.HTMLDocumentClass
+RawContentLength  : 357
+
+
+
+PS E:\Code\springbootProject>
