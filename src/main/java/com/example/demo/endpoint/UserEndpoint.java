@@ -1,21 +1,32 @@
 package com.example.demo.endpoint;
 
-import com.example.demo.entity.User;
-import com.example.demo.service.UserService;
-import com.mcnz.jee.soap.GetUserRequest;
-import com.mcnz.jee.soap.GetUserResponse;
-import com.mcnz.jee.soap.*;
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
+import java.util.List;
+
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
 import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
 
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.GregorianCalendar;
-import java.util.List;
+import com.example.demo.entity.User;
+import com.example.demo.service.UserService;
+import com.mcnz.jee.soap.AddUserRequest;
+import com.mcnz.jee.soap.AddUserResponse;
+import com.mcnz.jee.soap.DeleteUserRequest;
+import com.mcnz.jee.soap.DeleteUserResponse;
+import com.mcnz.jee.soap.GetAllUsersRequest;
+import com.mcnz.jee.soap.GetAllUsersResponse;
+import com.mcnz.jee.soap.GetUserRequest;
+import com.mcnz.jee.soap.GetUserResponse;
+import com.mcnz.jee.soap.GetUsersByPrimaryRoleRequest;
+import com.mcnz.jee.soap.GetUsersByPrimaryRoleResponse;
+import com.mcnz.jee.soap.UpdateUserRequest;
+import com.mcnz.jee.soap.UpdateUserResponse;
 
 
 @Endpoint
@@ -85,8 +96,8 @@ public class UserEndpoint {
 
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "getUsersByPrimaryRoleRequest")
     @ResponsePayload
-    public GetUsersByRoleResponse getUsersByRole(@RequestPayload GetUsersByPrimaryRoleRequest request) {
-        GetUsersByRoleResponse response = new GetUsersByRoleResponse();
+    public GetUsersByPrimaryRoleResponse getUsersByRole(@RequestPayload GetUsersByPrimaryRoleRequest request) {
+        GetUsersByPrimaryRoleResponse response = new GetUsersByPrimaryRoleResponse();
 
         List<User> users = userService.getUsersByPrimaryRole(request.getPrimaryRole());
         List<com.mcnz.jee.soap.User> soapUsers = new ArrayList<>();

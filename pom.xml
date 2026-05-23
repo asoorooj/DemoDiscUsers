@@ -28,6 +28,8 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<javafx.version>21.0.4</javafx.version>
+		<javafx.platform>win</javafx.platform>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -150,6 +152,20 @@
 			<version>20240303</version> <!-- Use the latest version -->
 		</dependency>
 
+		<!-- JavaFX (desktop UI) -->
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-controls</artifactId>
+			<version>${javafx.version}</version>
+			<classifier>${javafx.platform}</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-fxml</artifactId>
+			<version>${javafx.version}</version>
+			<classifier>${javafx.platform}</classifier>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -157,6 +173,16 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<!-- Run JavaFX via: mvn javafx:run -->
+			<plugin>
+				<groupId>org.openjfx</groupId>
+				<artifactId>javafx-maven-plugin</artifactId>
+				<version>0.0.8</version>
+				<configuration>
+					<mainClass>com.example.demo.FxAppLauncher</mainClass>
+				</configuration>
 			</plugin>
 
 			<plugin>
@@ -175,8 +201,8 @@
 					<sources>
 						<source>src/main/resources/user.xsd</source>
 					</sources>
-					<outputDirectory>src/main/java</outputDirectory>
-					<clearOutputDir>false</clearOutputDir>
+					<outputDirectory>target/generated-sources/jaxb</outputDirectory>
+					<clearOutputDir>true</clearOutputDir>
 				</configuration>
 			</plugin>
 

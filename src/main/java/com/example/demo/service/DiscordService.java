@@ -1,32 +1,34 @@
 package com.example.demo.service;
 
-import club.minnced.discord.jdave.interop.JDaveSessionFactory;
-import com.example.demo.discordComponents.CommandListener;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.audio.AudioModuleConfig;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import net.dv8tion.jda.api.requests.GatewayIntent;
-import net.dv8tion.jda.api.utils.cache.CacheFlag;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.stereotype.Service;
-
-import org.springframework.web.reactive.function.client.WebClient;
-
+// import club.minnced.discord.jdave.interop.JDaveSessionFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import com.example.demo.discordComponents.CommandListener;
+
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
+
 @Service
 public class DiscordService {
 
     private final WebClient webClient = WebClient.create("https://discord.com/api/v10");
+    private final String channelBotCommandsId = "955599186353619017";
 
     @Value("${discord.bot.token}")
     private String botToken;
@@ -37,8 +39,8 @@ public class DiscordService {
     private JDA jda;
 
     @Bean
-    public JDA jda() throws Exception {
-        JDA jda = JDABuilder.createDefault(botToken)
+    protected JDA jda() throws Exception {
+        jda = JDABuilder.createDefault(botToken)
                 .enableIntents(GatewayIntent.GUILD_MEMBERS)
                 .enableIntents(GatewayIntent.GUILD_PRESENCES)
                 .enableIntents(GatewayIntent.GUILD_MESSAGES)
@@ -47,7 +49,6 @@ public class DiscordService {
                 .enableIntents(GatewayIntent.GUILD_MESSAGE_REACTIONS)
                 .enableCache(CacheFlag.VOICE_STATE)
                 .addEventListeners(new CommandListener())
-                .setAudioModuleConfig(new AudioModuleConfig().withDaveSessionFactory())
                 .build()
                 .awaitReady();
 
@@ -127,6 +128,18 @@ public class DiscordService {
 
         return Map.of("users", users);
 
+    }
+
+    public void sendMessage(){
+        if (jda != null) {
+            TextChannel channel = jda.getTextChannelById(channelBotCommandsId);
+            
+            if (channel != null) {
+                channel.sendMessage("Eye see you").queue();
+            } else {
+                System.out.println("Could not find the channel. Check the ID.");
+            }
+        }
     }
 
 }
