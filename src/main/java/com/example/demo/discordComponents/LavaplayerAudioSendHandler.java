@@ -1,0 +1,35 @@
+package com.example.demo.discordComponents;
+
+import java.nio.ByteBuffer;
+
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
+import com.sedmelluq.discord.lavaplayer.track.playback.MutableAudioFrame;
+
+import net.dv8tion.jda.api.audio.AudioSendHandler;
+
+public class LavaplayerAudioSendHandler implements AudioSendHandler {
+    private final AudioPlayer audioPlayer;
+    private final ByteBuffer buffer = ByteBuffer.allocate(1024);
+    private final MutableAudioFrame frame = new MutableAudioFrame();
+
+    public LavaplayerAudioSendHandler(AudioPlayer audioPlayer) {
+        this.audioPlayer = audioPlayer;
+        frame.setBuffer(buffer);
+    }
+
+    @Override
+    public boolean canProvide() {
+        buffer.clear();
+        return audioPlayer.provide(frame);
+    }
+
+    @Override
+    public ByteBuffer provide20MsAudio() {
+        return buffer.flip();
+    }
+
+    @Override
+    public boolean isOpus() {
+        return true;
+    }
+}

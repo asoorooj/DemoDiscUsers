@@ -31,6 +31,19 @@
 		<javafx.version>21.0.4</javafx.version>
 		<javafx.platform>win</javafx.platform>
 	</properties>
+
+	<repositories>
+		<repository>
+			<id>lavalink-releases</id>
+			<url>https://maven.lavalink.dev/releases</url>
+		</repository>
+		<!-- optional if you want snapshot/commit versions -->
+		<repository>
+			<id>lavalink-snapshots</id>
+			<url>https://maven.lavalink.dev/snapshots</url>
+		</repository>
+	</repositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -57,10 +70,11 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
-			<version>3.4.5</version>
+			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
 
@@ -101,13 +115,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
 			<groupId>io.github.wimdeblauwe</groupId>
 			<artifactId>htmx-spring-boot</artifactId>
 			<version>3.6.3</version>
@@ -126,24 +133,10 @@
 			<scope>compile</scope>
 		</dependency>
 
-<!--		<dependency>-->
-<!--			<groupId>com.googlecode.soundlibs</groupId>-->
-<!--			<artifactId>mp3spi</artifactId>-->
-<!--			<version>1.9.5.4</version>-->
-<!--		</dependency>-->
-
 		<dependency>
-			<groupId>club.minnced</groupId>
-			<artifactId>jdave-native-win-x86-64</artifactId>
-			<version>0.1.5</version>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>club.minnced</groupId>
-			<artifactId>udpqueue-native-win-x86</artifactId>
-			<version>0.2.12</version>
-			<scope>compile</scope>
+			<groupId>dev.arbjerg</groupId>
+			<artifactId>lavaplayer</artifactId>
+			<version>2.2.6</version>
 		</dependency>
 
 		<dependency>
@@ -164,6 +157,24 @@
 			<artifactId>javafx-fxml</artifactId>
 			<version>${javafx.version}</version>
 			<classifier>${javafx.platform}</classifier>
+		</dependency>
+
+		<dependency>
+			<groupId>moe.kyokobot.libdave</groupId>
+			<artifactId>impl-jni</artifactId>
+			<version>0.1.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>moe.kyokobot.libdave</groupId>
+			<artifactId>natives-win-x86-64</artifactId>
+			<version>0.1.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>moe.kyokobot.libdave</groupId>
+			<artifactId>adapter-jda</artifactId>
+			<version>0.1.2</version>
 		</dependency>
 
 	</dependencies>

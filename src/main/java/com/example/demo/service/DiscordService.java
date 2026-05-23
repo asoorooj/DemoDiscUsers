@@ -14,8 +14,12 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.example.demo.discordComponents.CommandListener;
 
+import moe.kyokobot.libdave.NativeDaveFactory;
+import moe.kyokobot.libdave.jda.LDJDADaveSessionFactory;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.audio.AudioModuleConfig;
+import net.dv8tion.jda.api.audio.dave.DaveSessionFactory;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -40,6 +44,9 @@ public class DiscordService {
 
     @Bean
     protected JDA jda() throws Exception {
+
+        DaveSessionFactory daveSessionFactory = new LDJDADaveSessionFactory(new NativeDaveFactory());
+
         jda = JDABuilder.createDefault(botToken)
                 .enableIntents(GatewayIntent.GUILD_MEMBERS)
                 .enableIntents(GatewayIntent.GUILD_PRESENCES)
@@ -49,6 +56,7 @@ public class DiscordService {
                 .enableIntents(GatewayIntent.GUILD_MESSAGE_REACTIONS)
                 .enableCache(CacheFlag.VOICE_STATE)
                 .addEventListeners(new CommandListener())
+                .setAudioModuleConfig(new AudioModuleConfig().withDaveSessionFactory(daveSessionFactory))
                 .build()
                 .awaitReady();
 
