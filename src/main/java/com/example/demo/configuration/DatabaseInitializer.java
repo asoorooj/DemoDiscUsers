@@ -1,18 +1,21 @@
 package com.example.demo.configuration;
 
-import com.example.demo.repository.UserRepository;
-import jakarta.annotation.PostConstruct;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
+import java.util.Properties;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 
-import javax.sql.DataSource;
-import java.util.Properties;
+import com.example.demo.repository.UserRepository;
+import com.zaxxer.hikari.HikariDataSource;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 
 @Configuration
 public class DatabaseInitializer {
@@ -30,6 +33,8 @@ public class DatabaseInitializer {
     private String dbDriver;
 
     private EntityManagerFactory entityManagerFactory;
+    private EntityManager entityManager;
+    private HikariDataSource dataSource;
     private UserRepository userRepository;
     private boolean databaseConnected = false;
 
@@ -39,12 +44,18 @@ public class DatabaseInitializer {
         try {
             System.out.println("🔄 Attempting to connect to database...");
 
-            DataSource dataSource = DataSourceBuilder.create()
+            this.dataSource = DataSourceBuilder.create()
+                    .type(HikariDataSource.class)
                     .driverClassName(dbDriver)
                     .url(dbUrl)
                     .username(dbUsername)
                     .password(dbPassword)
                     .build();
+
+            this.dataSource.setMaximumPoolSize(3);
+            this.dataSource.setMinimumIdle(0);
+            this.dataSource.setConnectionTimeout(3000);
+            this.dataSource.setIdleTimeout(30000);
 
             LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
             factoryBean.setDataSource(dataSource);
@@ -61,8 +72,8 @@ public class DatabaseInitializer {
             factoryBean.afterPropertiesSet();
             this.entityManagerFactory = factoryBean.getObject();
 
-            EntityManager em = entityManagerFactory.createEntityManager();
-            JpaRepositoryFactory repoFactory = new JpaRepositoryFactory(em);
+            this.entityManager = entityManagerFactory.createEntityManager();
+            JpaRepositoryFactory repoFactory = new JpaRepositoryFactory(entityManager);
             this.userRepository = repoFactory.getRepository(UserRepository.class);
 
             this.databaseConnected = true;
@@ -75,6 +86,20 @@ public class DatabaseInitializer {
         }
     }
 
+    @PreDestroy
+    public void shutdownDatabase() {
+        if (entityManager != null && entityManager.isOpen()) {
+            entityManager.close();
+        }
+        if (entityManagerFactory != null && entityManagerFactory.isOpen()) {
+            entityManagerFactory.close();
+        }
+        if (dataSource != null) {
+            dataSource.close();
+        }
+        System.out.println("Closing Data Source, Entity Manager, and Entity Manager Factory");
+    }
+
     public boolean isDatabaseConnected() {
         return databaseConnected;
     }
@@ -85,52 +110,3 @@ public class DatabaseInitializer {
         return userRepository;
     }
 }
-
-//@Configuration
-//public class DatabaseInitializer {
-//
-//    @Value("${spring.datasource.url}")
-//    private String dbUrl;
-//    @Value("${spring.datasource.username}")
-//    private String dbUsername;
-//    @Value("${spring.datasource.password}")
-//    private String dbPassword;
-//    @Value("${spring.datasource.driver-class-name}")
-//    private String dbDriver;
-//
-//    @Bean
-//    public UserRepository userRepository() {
-//        try {
-//            DataSource dataSource = DataSourceBuilder.create()
-//                    .driverClassName(dbDriver)
-//                    .url(dbUrl)
-//                    .username(dbUsername)
-//                    .password(dbPassword)
-//                    .build();
-//
-//            LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
-//            factoryBean.setDataSource(dataSource);
-//            factoryBean.setPackagesToScan("com.example.demo.models");
-//            factoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
-//
-//            Properties props = new Properties();
-//            props.put("hibernate.hbm2ddl.auto", "update");
-//            props.put("hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect");
-//            factoryBean.setJpaProperties(props);
-//
-//            factoryBean.afterPropertiesSet();
-//            EntityManagerFactory emf = factoryBean.getObject();
-//            EntityManager em = emf.createEntityManager();
-//            JpaRepositoryFactory repoFactory = new JpaRepositoryFactory(em);
-//
-//            System.out.println("✅ Database connected, UserRepository bean created!");
-//            return repoFactory.getRepository(UserRepository.class);
-//
-//        } catch (Exception e) {
-//            System.err.println("⚠️ Could not connect to database. UserRepository bean NOT created.");
-//            return null; // Spring will ignore null beans
-//        }
-//    }
-//}
-
-

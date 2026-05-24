@@ -1,16 +1,15 @@
 package com.example.demo.controller;
 
-import com.example.demo.service.DiscordService;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Mono;
-
-import  net.dv8tion.jda.api.entities.Member;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+
+import org.springframework.http.MediaType;
+import  org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.demo.service.DiscordService;
 
 @RestController
 @RequestMapping(value="/discord/api/discord", produces = MediaType.APPLICATION_JSON_VALUE)

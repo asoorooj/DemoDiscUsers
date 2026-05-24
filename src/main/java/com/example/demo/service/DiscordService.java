@@ -1,38 +1,41 @@
 package com.example.demo.service;
 
 // import club.minnced.discord.jdave.interop.JDaveSessionFactory;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.example.demo.discordComponents.CommandListener;
+import com.example.demo.discordComponents.LavaplayerAudioSendHandler;
+import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
+import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 
-import moe.kyokobot.libdave.NativeDaveFactory;
-import moe.kyokobot.libdave.jda.LDJDADaveSessionFactory;
+import jakarta.annotation.PreDestroy;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.audio.AudioModuleConfig;
-import net.dv8tion.jda.api.audio.dave.DaveSessionFactory;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import net.dv8tion.jda.api.requests.GatewayIntent;
-import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.managers.AudioManager;
 
 @Service
 public class DiscordService {
 
     private final WebClient webClient = WebClient.create("https://discord.com/api/v10");
     private final String channelBotCommandsId = "955599186353619017";
+    private final String myUserId = "401902252576735233";
 
     @Value("${discord.bot.token}")
     private String botToken;
@@ -40,41 +43,17 @@ public class DiscordService {
     @Value("${discord.guild.id}")
     private String guildId;
 
-    private JDA jda;
+    private final JDA jda;
+    private final AudioPlayerManager playerManager;
 
-    @Bean
-    protected JDA jda() throws Exception {
+    public DiscordService(JDA jda, AudioPlayerManager playerManager){
+        this.jda = jda;
+        this.playerManager = playerManager;
+    }
 
-        DaveSessionFactory daveSessionFactory = new LDJDADaveSessionFactory(new NativeDaveFactory());
-
-        jda = JDABuilder.createDefault(botToken)
-                .enableIntents(GatewayIntent.GUILD_MEMBERS)
-                .enableIntents(GatewayIntent.GUILD_PRESENCES)
-                .enableIntents(GatewayIntent.GUILD_MESSAGES)
-                .enableIntents(GatewayIntent.GUILD_VOICE_STATES)
-                .enableIntents(GatewayIntent.DIRECT_MESSAGES)
-                .enableIntents(GatewayIntent.GUILD_MESSAGE_REACTIONS)
-                .enableCache(CacheFlag.VOICE_STATE)
-                .addEventListeners(new CommandListener())
-                .setAudioModuleConfig(new AudioModuleConfig().withDaveSessionFactory(daveSessionFactory))
-                .build()
-                .awaitReady();
-
-//        for (ListenerAdapter listener : listeners) {
-//            builder.addEventListeners(listener);
-//        }
-
-        jda.getGuildById(955559036630229043L).updateCommands()
-            .addCommands(
-                    Commands.slash("hello","returns hello"),
-                    Commands.slash("hello-message", "returns hello with a message")
-                            .addOption(OptionType.STRING, "message", "add a message", false),
-                    Commands.slash("hello-pink","her name is pink and she might be glad to meet you"),
-                    Commands.slash("illegal", "Her name is pink... but is she really glad to meet you?")
-            )
-            .queue();
-
-        return jda;
+    @PreDestroy
+    public void shutdown() {
+        jda.shutdown();
     }
 
     public List<String> getAllMembersLive() {
@@ -150,4 +129,67 @@ public class DiscordService {
         }
     }
 
+    public void playAudio(String path){
+        // 401902252576735233
+        if (jda != null) {
+            try{
+                Guild guild = jda.getGuildById(guildId);
+
+                TextChannel textChannel = guild.getChannelById(TextChannel.class, channelBotCommandsId);
+
+                Member member = guild.getMemberById(myUserId);
+
+                VoiceChannel channel = member.getVoiceState().getChannel().asVoiceChannel();
+                AudioManager audioManager = guild.getAudioManager();
+                audioManager.setSelfDeafened(true);
+
+                AudioPlayer player = playerManager.createPlayer();
+                LavaplayerAudioSendHandler handler = new LavaplayerAudioSendHandler(player);
+                audioManager.setSendingHandler(handler);
+                audioManager.openAudioConnection(channel);
+
+                File trackFile = new File(getClass().getResource(path).toURI());
+                player.addListener(new AudioEventAdapter() {
+                    @Override
+                    public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
+                        audioManager.closeAudioConnection();
+                    }
+                });
+
+                playerManager.loadItem(trackFile.getAbsolutePath(), new AudioLoadResultHandler() {
+                    @Override
+                    public void trackLoaded(AudioTrack track) {
+                        player.startTrack(track, false);
+                    }
+
+                    @Override
+                    public void playlistLoaded(AudioPlaylist playlist) {
+                        if (!playlist.getTracks().isEmpty()) {
+                            player.startTrack(playlist.getTracks().get(0), false);
+                        }
+                    }
+
+                    @Override
+                    public void noMatches() {
+                        audioManager.closeAudioConnection();
+                        // throw new Exception("Audio not found.");
+                    }
+
+                    @Override
+                    public void loadFailed(FriendlyException exception) {
+                        audioManager.closeAudioConnection();
+                        // throw new Exception("Audio load failed: " + exception.getMessage());
+                    }
+                });
+
+                if(textChannel != null){
+                    textChannel.sendMessage("▶ Playing audio..."+member.getAsMention()).queue();
+                }
+                    
+            } catch(Exception e){
+                System.err.println(e.getMessage());
+            }
+        }
+    }
+    
 }
