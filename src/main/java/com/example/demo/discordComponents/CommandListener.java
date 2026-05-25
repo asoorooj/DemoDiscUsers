@@ -14,7 +14,6 @@ import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
-import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -55,7 +54,7 @@ public class CommandListener extends ListenerAdapter {
         this.stringCommandMap = tempStringCommandMap;
 
         this.playerManager = playerManager; 
-        AudioSourceManagers.registerLocalSource(this.playerManager);
+        // AudioSourceManagers.registerLocalSource(this.playerManager);
     }
 
     
@@ -103,7 +102,7 @@ public class CommandListener extends ListenerAdapter {
         try {
             Member member = event.getMember();
             Guild guild = event.getGuild();
-
+            
             VoiceChannel channel = member.getVoiceState().getChannel().asVoiceChannel();
             if (channel == null) {
                 event.reply("Join a voice channel first.").setEphemeral(true).queue();

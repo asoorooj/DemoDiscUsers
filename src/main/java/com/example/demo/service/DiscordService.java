@@ -5,6 +5,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +13,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.example.demo.discordComponents.CommandListener;
 import com.example.demo.discordComponents.LavaplayerAudioSendHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
@@ -23,19 +25,26 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 
 import jakarta.annotation.PreDestroy;
+import moe.kyokobot.libdave.NativeDaveFactory;
+import moe.kyokobot.libdave.jda.LDJDADaveSessionFactory;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.audio.AudioModuleConfig;
+import net.dv8tion.jda.api.audio.dave.DaveSessionFactory;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.managers.AudioManager;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
 @Service
 public class DiscordService {
 
     private final WebClient webClient = WebClient.create("https://discord.com/api/v10");
-    private final String channelBotCommandsId = "955599186353619017";
-    private final String myUserId = "401902252576735233";
+
+    private final AudioPlayerManager playerManager;
 
     @Value("${discord.bot.token}")
     private String botToken;
@@ -43,17 +52,93 @@ public class DiscordService {
     @Value("${discord.guild.id}")
     private String guildId;
 
-    private final JDA jda;
-    private final AudioPlayerManager playerManager;
+    private String channelBotCommandsId = "955599186353619017";
+    private String myUserId = "401902252576735233";
 
-    public DiscordService(JDA jda, AudioPlayerManager playerManager){
-        this.jda = jda;
+    private final CommandListener commandListener;
+    private JDA jda;
+
+    public DiscordService(
+        Optional<CommandListener> commandListenerOptional, 
+        AudioPlayerManager playerManager,
+        @Value("${discord.bot.token}") String botToken,
+        @Value("${discord.guild.id}") String guildId
+    ) throws Exception{
         this.playerManager = playerManager;
+        // AudioSourceManagers.registerLocalSource(this.playerManager);
+
+        this.commandListener = commandListenerOptional.orElse(null);
+
+        this.botToken = botToken;
+        this.guildId = guildId;
+
+        this.jda = connectJDA(commandListener, botToken, guildId);
+    }
+
+    public JDA connectJDA(
+        CommandListener commandListener, 
+        String botToken,
+        String guildId
+    ) throws Exception {
+
+        if(botToken != null && guildId != null){
+
+            DaveSessionFactory daveSessionFactory = new LDJDADaveSessionFactory(new NativeDaveFactory());
+
+            JDABuilder jdaBuilder = JDABuilder.createDefault(botToken)
+                    .enableIntents(GatewayIntent.GUILD_MEMBERS)
+                    .enableIntents(GatewayIntent.GUILD_PRESENCES)
+                    .enableIntents(GatewayIntent.GUILD_MESSAGES)
+                    .enableIntents(GatewayIntent.GUILD_VOICE_STATES)
+                    .enableIntents(GatewayIntent.DIRECT_MESSAGES)
+                    .enableIntents(GatewayIntent.GUILD_MESSAGE_REACTIONS)
+                    .enableCache(CacheFlag.VOICE_STATE)
+                    .setAudioModuleConfig(new AudioModuleConfig().withDaveSessionFactory(daveSessionFactory));
+
+            if(commandListener != null){
+                jdaBuilder.addEventListeners(commandListener);
+                System.out.println("Command Listener Added");
+            } else {
+                System.out.println("Command Listener Not Added");
+            }
+            
+            JDA jda = jdaBuilder.build().awaitReady();
+
+            try{
+                if(jda.getEventManager().getRegisteredListeners().size() > 0){
+                    jda.getGuildById(guildId).updateCommands().addCommands(commandListener.getCommandSet()).queue();
+                }
+            } catch (Exception e){
+
+            }
+
+            return jda;
+        }
+        
+        return null;
+
+    }
+    
+    public void disconnectJda(JDA jda){
+        if(jda != null){
+            jda.shutdown();
+        }
     }
 
     @PreDestroy
     public void shutdown() {
-        jda.shutdown();
+        disconnectJda(jda);
+    }
+
+    public void reconnectJDA(String botToken, String guildId, String channelBotCommandsId, String myUserId) throws Exception{
+        disconnectJda(jda);
+
+        this.botToken = botToken;
+        this.guildId = guildId;
+        this.channelBotCommandsId = channelBotCommandsId;
+        this.myUserId = myUserId;
+
+        this.jda = connectJDA(commandListener, botToken, guildId);
     }
 
     public List<String> getAllMembersLive() {
